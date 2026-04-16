@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>IntelliEstate</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --bg2: #f5f4f0; --bg3: #eeedea;
+    --text: #1a1a18; --text2: #6b6b67; --text3: #9c9a92;
+    --border: rgba(0,0,0,0.12); --border2: rgba(0,0,0,0.22);
+    --purple: #7F77DD; --purple-bg: #EEEDFE; --purple-text: #3C3489;
+    --teal: #1D9E75; --teal-bg: #E1F5EE; --teal-text: #0F6E56;
+    --coral-bg: #FAECE7; --coral-text: #993C1D;
+    --amber-bg: #FAEEDA; --amber-text: #854F0B;
+    --radius: 8px; --radius-lg: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1a; --bg2: #242422; --bg3: #2c2c2a;
+      --text: #e8e6de; --text2: #9c9a92; --text3: #6b6b67;
+      --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.2);
+      --purple-bg: #3C3489; --purple-text: #CECBF6;
+      --teal-bg: #085041; --teal-text: #9FE1CB;
+      --coral-bg: #712B13; --coral-text: #F5C4B3;
+      --amber-bg: #633806; --amber-text: #FAC775;
+    }
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg2); color: var(--text); min-height: 100vh; }
+
+  /* Login */
+  #login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1rem; }
+  .login-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 2.5rem 2rem; width: 100%; max-width: 380px; }
+  .login-brand { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 6px; }
+  .login-brand span { color: var(--purple); }
+  .login-sub { font-size: 13px; color: var(--text3); margin-bottom: 2rem; }
+  .login-label { font-size: 12px; color: var(--text2); margin-bottom: 6px; display: block; }
+  .login-input { width: 100%; padding: 10px 12px; border: 0.5px solid var(--border2); border-radius: var(--radius); background: var(--bg); color: var(--text); font-size: 14px; margin-bottom: 12px; outline: none; }
+  .login-input:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(127,119,221,0.15); }
+  .login-btn { width: 100%; padding: 10px; background: var(--text); color: var(--bg); border: none; border-radius: var(--radius); font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
+  .login-btn:hover { opacity: 0.85; }
+  .login-err { font-size: 12px; color: #D85A30; margin-top: 8px; display: none; }
+  .login-err.visible { display: block; }
+
+  /* App */
+  #app { display: none; flex-direction: column; min-height: 100vh; }
+  #app.visible { display: flex; }
+  .nav { background: var(--bg); border-bottom: 0.5px solid var(--border); padding: 0 1.5rem; display: flex; align-items: center; height: 52px; gap: 0; }
+  .brand { font-size: 15px; font-weight: 600; letter-spacing: -0.02em; margin-right: 2rem; flex-shrink: 0; }
+  .brand span { color: var(--purple); }
+  .nav-tabs { display: flex; height: 100%; overflow-x: auto; }
+  .nav-tab { font-size: 13px; color: var(--text3); padding: 0 14px; height: 100%; display: flex; align-items: center; cursor: pointer; border: none; border-bottom: 2px solid transparent; background: none; white-space: nowrap; transition: all 0.15s; }
+  .nav-tab:hover { color: var(--text); }
+  .nav-tab.active { color: var(--text); border-bottom-color: var(--text); }
+  .content { flex: 1; padding: 1.5rem; }
+  .page { display: none; max-width: 860px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  /* Home */
+  .greeting { font-size: 20px; font-weight: 500; margin-bottom: 4px; }
+  .greeting-sub { font-size: 13px; color: var(--text3); margin-bottom: 1.5rem; }
+  .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .tool-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; cursor: pointer; transition: border-color 0.15s; }
+  .tool-card:hover { border-color: var(--border2); }
+  .tool-card.inactive { opacity: 0.55; cursor: default; }
+  .tool-icon { width: 36px; height: 36px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+  .ic-purple { background: var(--purple-bg); } .ic-teal { background: var(--teal-bg); } .ic-coral { background: var(--coral-bg); } .ic-amber { background: var(--amber-bg); }
+  .tool-name { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+  .tool-desc { font-size: 12px; color: var(--text3); line-height: 1.5; margin-bottom: 10px; }
+  .tool-link { font-size: 12px; font-weight: 500; color: var(--purple); }
+  .soon-badge { font-size: 11px; color: var(--text3); background: var(--bg2); padding: 2px 8px; border-radius: 999px; }
+
+  /* Forms */
+  .page-header { margin-bottom: 1.25rem; }
+  .page-title { font-size: 16px; font-weight: 500; }
+  .page-sub { font-size: 12px; color: var(--text3); }
+  .form-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 12px; }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 10px; margin-bottom: 10px; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 12px; color: var(--text2); }
+  .full { grid-column: 1 / -1; }
+  input, textarea { padding: 8px 10px; border: 0.5px solid var(--border2); border-radius: var(--radius); background: var(--bg); color: var(--text); font-size: 13px; font-family: inherit; outline: none; width: 100%; transition: border-color 0.15s; }
+  input:focus, textarea:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(127,119,221,0.12); }
+  textarea { resize: vertical; min-height: 72px; }
+  .chip-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { font-size: 11px; padding: 4px 10px; border-radius: 999px; border: 0.5px solid var(--border2); color: var(--text2); cursor: pointer; background: none; transition: all 0.15s; }
+  .chip.active { background: var(--text); color: var(--bg); border-color: transparent; }
+  .btn-row { display: flex; gap: 8px; margin-top: 8px; }
+  .primary-btn { font-size: 13px; font-weight: 500; padding: 8px 18px; background: var(--text); color: var(--bg); border: none; border-radius: var(--radius); cursor: pointer; transition: opacity 0.15s; }
+  .primary-btn:hover { opacity: 0.85; }
+  .primary-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .ghost-btn { font-size: 13px; padding: 8px 14px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: none; color: var(--text2); cursor: pointer; }
+  .ghost-btn:hover { background: var(--bg2); }
+
+  /* Output */
+  .output-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 10px; display: none; }
+  .output-card.visible { display: block; }
+  .output-hdr { background: var(--bg2); padding: 10px 1.25rem; border-bottom: 0.5px solid var(--border); }
+  .output-hdr-label { font-size: 11px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text3); }
+  .output-sec { padding: 1rem 1.25rem; border-bottom: 0.5px solid var(--border); }
+  .output-sec:last-of-type { border-bottom: none; }
+  .output-sec-label { font-size: 11px; color: var(--text3); margin-bottom: 6px; }
+  .output-text { font-size: 13px; line-height: 1.75; white-space: pre-wrap; }
+  .output-actions { padding: 10px 1.25rem; border-top: 0.5px solid var(--border); display: flex; gap: 8px; flex-wrap: wrap; }
+  .sm-btn { font-size: 12px; padding: 5px 12px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: none; color: var(--text2); cursor: pointer; }
+  .sm-btn:hover { background: var(--bg2); }
+  .email-meta { font-size: 12px; color: var(--text3); line-height: 1.9; }
+  .email-meta b { color: var(--text); font-weight: 500; }
+
+  /* Loading / error */
+  .loading-row { display: none; align-items: center; gap: 10px; padding: 0.75rem 0; }
+  .loading-row.visible { display: flex; }
+  .spinner { width: 14px; height: 14px; border: 2px solid var(--border2); border-top-color: var(--text); border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 13px; color: var(--text2); }
+  .err-text { font-size: 12px; color: #D85A30; padding: 6px 0; display: none; }
+  .err-text.visible { display: block; }
+
+  /* More tools */
+  .more-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-brand">Intelli<span>Estate</span></div>
+    <div class="login-sub">Your AI work partner platform</div>
+    <label class="login-label">Password</label>
+    <input class="login-input" type="password" id="pw-input" placeholder="Enter your access password" onkeydown="if(event.key==='Enter')login()"/>
+    <button class="login-btn" onclick="login()">Access platform</button>
+    <div class="login-err" id="login-err">Incorrect password. Please try again.</div>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app">
+  <nav class="nav">
+    <div class="brand">Intelli<span>Estate</span></div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showPage('home',this)">Home</button>
+      <button class="nav-tab" onclick="showPage('copy',this)">Listing copy</button>
+      <button class="nav-tab" onclick="showPage('followup',this)">Follow-up</button>
+      <button class="nav-tab" onclick="showPage('market',this)">Market reports</button>
+      <button class="nav-tab" onclick="showPage('crm',this)">CRM notes</button>
+      <button class="nav-tab" onclick="showPage('tour',this)">Tour prep</button>
+      <button class="nav-tab" onclick="showPage('progression',this)">Sales progression</button>
+      <button class="nav-tab" onclick="showPage('social',this)">Social media</button>
+      <button class="nav-tab" onclick="showPage('investor',this)">Investor pack</button>
+    </div>
+  </nav>
+  <div class="content">
+
+    <!-- Home -->
+    <div class="page active" id="page-home">
+      <div class="greeting">Good morning.</div>
+      <div class="greeting-sub">Your AI work partners are ready. What do you need today?</div>
+      <div style="margin-bottom:1rem;"><button onclick="loadDemo()" style="font-size:12px;font-weight:500;padding:6px 14px;background:rgba(201,185,122,0.1);border:1px solid rgba(201,185,122,0.3);border-radius:8px;color:#C9B97A;cursor:pointer;">&#9654; Load Berkeley Group demo</button></div>
+      <div class="tools-grid">
+        <div class="tool-card" onclick="showPage('copy',document.querySelectorAll('.nav-tab')[1])">
+          <div class="tool-icon ic-purple">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="2" rx="1" fill="#534AB7"/><rect x="2" y="6" width="9" height="2" rx="1" fill="#534AB7"/><rect x="2" y="10" width="11" height="2" rx="1" fill="#534AB7"/><rect x="2" y="14" width="7" height="2" rx="1" fill="#534AB7"/></svg>
+          </div>
+          <div class="tool-name">Listing Copy Writer</div>
+          <div class="tool-desc">Generate polished, on-brand property descriptions, headlines, and social captions in seconds.</div>
+          <div class="tool-link">Open tool →</div>
+        </div>
+        <div class="tool-card" onclick="showPage('followup',document.querySelectorAll('.nav-tab')[2])">
+          <div class="tool-icon ic-teal">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 3h12v8a1 1 0 01-1 1H3a1 1 0 01-1-1V3z" stroke="#0F6E56" stroke-width="1.2" fill="none"/><path d="M2 3l6 5 6-5" stroke="#0F6E56" stroke-width="1.2" fill="none"/></svg>
+          </div>
+          <div class="tool-name">Follow-Up Agent</div>
+          <div class="tool-desc">Draft personalised buyer follow-up emails after site visits — referencing exactly what they saw and said.</div>
+          <div class="tool-link">Open tool →</div>
+        </div>
+        <div class="tool-card" onclick="showPage('market',document.querySelectorAll('.nav-tab')[3])">
+          <div class="tool-icon ic-coral">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 12V5l5-3 5 3v7l-5 3-5-3z" stroke="#993C1D" stroke-width="1.2" fill="none"/></svg>
+          </div>
+          <div class="tool-name">Market Report Builder</div>
+          <div class="tool-desc">Generate a buyer-ready market summary to justify price and build confidence.</div>
+          <div class="tool-link">Open tool →</div>
+        </div>
+        <div class="tool-card" onclick="showPage('crm',document.querySelectorAll('.nav-tab')[4])">
+          <div class="tool-icon ic-amber">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="4" width="12" height="9" rx="1.5" stroke="#854F0B" stroke-width="1.2" fill="none"/><path d="M5 4V3a3 3 0 016 0v1" stroke="#854F0B" stroke-width="1.2" fill="none"/></svg>
+          </div>
+          <div class="tool-name">CRM Note Taker</div>
+          <div class="tool-desc">Turn rough post-visit notes into clean, structured CRM entries instantly.</div>
+          <div class="tool-link">Open tool →</div>
+        </div>
+        <div class="tool-card" onclick="showPage('tour',document.querySelectorAll('.nav-tab')[5])">
+          <div class="tool-icon ic-purple">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="6" r="3" stroke="#534AB7" stroke-width="1.2" fill="none"/><path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="#534AB7" stroke-width="1.2" fill="none"/></svg>
+          </div>
+          <div class="tool-name">Tour Prep Briefing</div>
+          <div class="tool-desc">Walk into every viewing with a personalised briefing and objection prep.</div>
+          <div class="tool-link">Open tool →</div>
+        </div>
+        <div class="tool-card" onclick="showPage('progression',document.querySelectorAll('.nav-tab')[6])">
+          <div class="tool-icon ic-coral">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8h12M9 4l5 4-5 4" stroke="#993C1D" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="tool-name">Sales Progression Agent</div>
+          <div class="tool-desc">Buyer updates, solicitor chasing and exchange progression — automated.</div>
+          <div class="tool-link">Open tool →</div>
+        </div>
+        <div class="tool-card" onclick="showPage('social',document.querySelectorAll('.nav-tab')[7])">
+          <div class="tool-icon ic-amber">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="3" stroke="#854F0B" stroke-width="1.2" fill="none"/><path d="M1 14s1-4 7-4 7 4 7 4" stroke="#854F0B" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>
+          </div>
+          <div class="tool-name">Social Media Generator</div>
+          <div class="tool-desc">SEO and GEO-optimised social content from a single development brief.</div>
+          <div class="tool-link">Open tool →</div>
+        </div>
+        <div class="tool-card" onclick="showPage('investor',document.querySelectorAll('.nav-tab')[8])">
+          <div class="tool-icon ic-purple">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="10" width="3" height="4" rx="1" fill="#534AB7" opacity="0.4"/><rect x="6.5" y="6" width="3" height="8" rx="1" fill="#534AB7" opacity="0.7"/><rect x="11" y="2" width="3" height="12" rx="1" fill="#534AB7"/></svg>
+          </div>
+          <div class="tool-name">Investor Pack Builder</div>
+          <div class="tool-desc">Professional investor summaries with yield calculations and capital growth case.</div>
+          <div class="tool-link">Open tool →</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Listing Copy -->
+    <div class="page" id="page-copy">
+      <div class="page-header">
+        <div class="page-title">Listing Copy Writer</div>
+        <div class="page-sub">Bespoke listing copy in seconds</div>
+      </div>
+      <div class="form-card">
+        <div class="form-grid">
+          <div class="field"><label>Development name</label><input type="text" id="c-dev" placeholder="e.g. The Ashford Residences"/></div>
+          <div class="field"><label>Unit type</label><input type="text" id="c-unit" placeholder="e.g. 3-bed penthouse"/></div>
+          <div class="field"><label>Price</label><input type="text" id="c-price" placeholder="e.g. £4,200,000"/></div>
+          <div class="field"><label>Size</label><input type="text" id="c-size" placeholder="e.g. 3,800 sq ft"/></div>
+          <div class="field full"><label>Key features</label><input type="text" id="c-features" placeholder="e.g. private terrace, chef's kitchen, concierge, city views"/></div>
+          <div class="field full"><label>Location highlights</label><input type="text" id="c-location" placeholder="e.g. Tribeca, steps from Hudson River Park"/></div>
+          <div class="field full"><label>Target buyer</label>
+            <div class="chip-row" id="c-buyer">
+              <button class="chip active" onclick="pick(this,'c-buyer')">End-user / family</button>
+              <button class="chip" onclick="pick(this,'c-buyer')">Investor</button>
+              <button class="chip" onclick="pick(this,'c-buyer')">International buyer</button>
+              <button class="chip" onclick="pick(this,'c-buyer')">Downsizer</button>
+            </div>
+          </div>
+          <div class="field full"><label>Tone</label>
+            <div class="chip-row" id="c-tone">
+              <button class="chip active" onclick="pick(this,'c-tone')">Aspirational</button>
+              <button class="chip" onclick="pick(this,'c-tone')">Editorial</button>
+              <button class="chip" onclick="pick(this,'c-tone')">Understated luxury</button>
+              <button class="chip" onclick="pick(this,'c-tone')">Bold & direct</button>
+            </div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="primary-btn" id="c-btn" onclick="genCopy()">Generate copy</button>
+          <button class="ghost-btn" onclick="clearForm(['c-dev','c-unit','c-price','c-size','c-features','c-location'],'c-output','c-err')">Clear</button>
+        </div>
+        <div class="err-text" id="c-err"></div>
+        <div class="loading-row" id="c-load"><div class="spinner"></div><span class="loading-text">Writing your listing copy...</span></div>
+      </div>
+      <div class="output-card" id="c-output">
+        <div class="output-hdr"><span class="output-hdr-label">Generated copy</span></div>
+        <div class="output-sec"><div class="output-sec-label">Headline</div><div class="output-text" id="c-headline"></div></div>
+        <div class="output-sec"><div class="output-sec-label">Property description</div><div class="output-text" id="c-desc"></div></div>
+        <div class="output-sec"><div class="output-sec-label">Bullet highlights</div><div class="output-text" id="c-bullets"></div></div>
+        <div class="output-sec"><div class="output-sec-label">Social caption</div><div class="output-text" id="c-social"></div></div>
+        <div class="output-actions">
+          <button class="sm-btn" onclick="copyText(['c-headline','c-desc','c-bullets','c-social'].map(id=>document.getElementById(id).textContent).join('\n\n'))">Copy all</button>
+          <button class="sm-btn" onclick="genCopy()">Regenerate</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Follow-up -->
+    <div class="page" id="page-followup">
+      <div class="page-header">
+        <div class="page-title">Follow-Up Agent</div>
+        <div class="page-sub">Never lose a warm lead</div>
+      </div>
+      <div class="form-card">
+        <div class="form-grid">
+          <div class="field"><label>Buyer name</label><input type="text" id="f-buyer" placeholder="e.g. James & Sarah Mitchell"/></div>
+          <div class="field"><label>Agent name</label><input type="text" id="f-agent" placeholder="e.g. Rachel Torres"/></div>
+          <div class="field"><label>Development name</label><input type="text" id="f-dev" placeholder="e.g. The Ashford Residences"/></div>
+          <div class="field"><label>Units viewed</label><input type="text" id="f-units" placeholder="e.g. Unit 12A, Penthouse 8B"/></div>
+          <div class="field full"><label>Notes from visit</label><textarea id="f-notes" placeholder="e.g. Loved the city views, concerned about street noise. Partner preferred the penthouse. Wants to bring parents to second viewing."></textarea></div>
+          <div class="field full"><label>Objections raised</label><textarea id="f-obj" placeholder="e.g. Price feels high vs comparable buildings nearby." style="min-height:56px;"></textarea></div>
+          <div class="field full"><label>Follow-up timing</label>
+            <div class="chip-row" id="f-timing">
+              <button class="chip active" onclick="pick(this,'f-timing')">Same day</button>
+              <button class="chip" onclick="pick(this,'f-timing')">Next day</button>
+              <button class="chip" onclick="pick(this,'f-timing')">3 days later</button>
+              <button class="chip" onclick="pick(this,'f-timing')">1 week later</button>
+            </div>
+          </div>
+          <div class="field full"><label>Tone</label>
+            <div class="chip-row" id="f-tone">
+              <button class="chip active" onclick="pick(this,'f-tone')">Warm & personal</button>
+              <button class="chip" onclick="pick(this,'f-tone')">Professional</button>
+              <button class="chip" onclick="pick(this,'f-tone')">Gentle urgency</button>
+              <button class="chip" onclick="pick(this,'f-tone')">Low pressure</button>
+            </div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="primary-btn" id="f-btn" onclick="genFollowup()">Generate follow-up</button>
+          <button class="ghost-btn" onclick="clearForm(['f-buyer','f-agent','f-dev','f-units','f-notes','f-obj'],'f-output','f-err')">Clear</button>
+        </div>
+        <div class="err-text" id="f-err"></div>
+        <div class="loading-row" id="f-load"><div class="spinner"></div><span class="loading-text">Drafting your personalised follow-up...</span></div>
+      </div>
+      <div class="output-card" id="f-output">
+        <div class="output-hdr"><span class="output-hdr-label">Your follow-up email</span></div>
+        <div class="output-sec">
+          <div class="email-meta">To: <b id="f-to"></b></div>
+          <div class="email-meta">Subject: <b id="f-subject"></b></div>
+        </div>
+        <div class="output-sec"><div class="output-text" id="f-body"></div></div>
+        <div class="output-actions">
+          <button class="sm-btn" onclick="copyText('Subject: '+document.getElementById('f-subject').textContent+'\n\n'+document.getElementById('f-body').textContent)">Copy email</button>
+          <button class="sm-btn" onclick="genFollowup()">Regenerate</button>
+        </div>
+      </div>
+    </div>
+
+<!-- MARKET REPORT PAGE -->
+<div class="page" id="page-market">
+  <div class="page-header">
+    <div class="page-title">Market Report Builder</div>
+    <div class="page-sub">Turn data into buyer confidence — one page, ready to send</div>
+  </div>
+  <div class="form-card">
+    <div class="form-grid">
+      <div class="field"><label>Development name</label><input type="text" id="m-dev" placeholder="e.g. The Ashford Residences"/></div>
+      <div class="field"><label>Property type</label><input type="text" id="m-type" placeholder="e.g. 2-bed apartment"/></div>
+      <div class="field"><label>Asking price</label><input type="text" id="m-price" placeholder="e.g. £950,000"/></div>
+      <div class="field"><label>Location / postcode</label><input type="text" id="m-location" placeholder="e.g. Nine Elms, SW8"/></div>
+      <div class="field full"><label>Comparable sales (paste in any recent sales data you have)</label><textarea id="m-comps" placeholder="e.g. 2-bed at Keybridge, SW8 — sold £920,000 (Jan 2025). 2-bed at Rivington House — sold £975,000 (Dec 2024). Price per sq ft in area avg £1,100."></textarea></div>
+      <div class="field full"><label>Key neighbourhood highlights</label><input type="text" id="m-highlights" placeholder="e.g. New Tube station, riverside location, regeneration zone, strong rental yields"/></div>
+      <div class="field full"><label>Buyer concern to address</label>
+        <div class="chip-row" id="m-concern">
+          <button class="chip active" onclick="pick(this,'m-concern')">Is the price justified?</button>
+          <button class="chip" onclick="pick(this,'m-concern')">Is this a good investment?</button>
+          <button class="chip" onclick="pick(this,'m-concern')">Will values hold?</button>
+          <button class="chip" onclick="pick(this,'m-concern')">Is the area up and coming?</button>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="primary-btn" id="m-btn" onclick="genMarket()">Generate report</button>
+      <button class="ghost-btn" onclick="clearForm(['m-dev','m-type','m-price','m-location','m-comps','m-highlights'],'m-output','m-err')">Clear</button>
+    </div>
+    <div class="err-text" id="m-err"></div>
+    <div class="loading-row" id="m-load"><div class="spinner"></div><span class="loading-text">Building your market report...</span></div>
+  </div>
+  <div class="output-card" id="m-output">
+    <div class="output-hdr"><span class="output-hdr-label">Market report</span></div>
+    <div class="output-sec"><div class="output-sec-label">Headline summary</div><div class="output-text" id="m-summary"></div></div>
+    <div class="output-sec"><div class="output-sec-label">Market context</div><div class="output-text" id="m-context"></div></div>
+    <div class="output-sec"><div class="output-sec-label">Comparable evidence</div><div class="output-text" id="m-evidence"></div></div>
+    <div class="output-sec"><div class="output-sec-label">Investment case</div><div class="output-text" id="m-investment"></div></div>
+    <div class="output-sec"><div class="output-sec-label">Closing narrative</div><div class="output-text" id="m-closing"></div></div>
+    <div class="output-actions">
+      <button class="sm-btn" onclick="copyText(['m-summary','m-context','m-evidence','m-investment','m-closing'].map(id=>document.getElementById(id).textContent).join('\n\n'))">Copy all</button>
+      <button class="sm-btn" onclick="genMarket()">Regenerate</button>
+    </div>
+  </div>
+</div>
+
+<!-- CRM NOTE TAKER PAGE -->
+<div class="page" id="page-crm">
+  <div class="page-header">
+    <div class="page-title">CRM Note Taker</div>
+    <div class="page-sub">Zero admin after every call or visit</div>
+  </div>
+  <div class="form-card">
+    <div class="form-grid">
+      <div class="field"><label>Buyer name</label><input type="text" id="n-buyer" placeholder="e.g. James & Sarah Mitchell"/></div>
+      <div class="field"><label>Development</label><input type="text" id="n-dev" placeholder="e.g. The Ashford Residences"/></div>
+      <div class="field full"><label>Your brain dump — type or paste your rough notes exactly as they are</label><textarea id="n-notes" style="min-height:120px;" placeholder="e.g. met james and sarah today, they loved unit 12a especially the terrace, sarah not sure about the kitchen size, james asked about service charge, seemed warm but said they want to think about it, he works in finance she's a doctor, they have 2 kids, mentioned they're also looking at something in chelsea, budget seems flexible, said call them thursday"></textarea></div>
+      <div class="field full"><label>Interaction type</label>
+        <div class="chip-row" id="n-type">
+          <button class="chip active" onclick="pick(this,'n-type')">Site visit</button>
+          <button class="chip" onclick="pick(this,'n-type')">Phone call</button>
+          <button class="chip" onclick="pick(this,'n-type')">Video call</button>
+          <button class="chip" onclick="pick(this,'n-type')">Email exchange</button>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="primary-btn" id="n-btn" onclick="genCRM()">Structure my notes</button>
+      <button class="ghost-btn" onclick="clearForm(['n-buyer','n-dev','n-notes'],'n-output','n-err')">Clear</button>
+    </div>
+    <div class="err-text" id="n-err"></div>
+    <div class="loading-row" id="n-load"><div class="spinner"></div><span class="loading-text">Structuring your notes...</span></div>
+  </div>
+  <div class="output-card" id="n-output">
+    <div class="output-hdr"><span class="output-hdr-label">Structured CRM entry</span></div>
+    <div class="output-sec"><div class="output-sec-label">Buyer profile</div><div class="output-text" id="n-profile"></div></div>
+    <div class="output-sec"><div class="output-sec-label">Lead temperature</div><div class="output-text" id="n-temp"></div></div>
+    <div class="output-sec"><div class="output-sec-label">Key interests & preferences</div><div class="output-text" id="n-interests"></div></div>
+    <div class="output-sec"><div class="output-sec-label">Objections & concerns</div><div class="output-text" id="n-objections"></div></div>
+    <div class="output-sec"><div class="output-sec-label">Next action</div><div class="output-text" id="n-next"></div></div>
+    <div class="output-actions">
+      <button class="sm-btn" onclick="copyText(['n-profile','n-temp','n-interests','n-objections','n-next'].map(id=>document.getElementById(id).textContent).join('\n\n'))">Copy to CRM</button>
+      <button class="sm-btn" onclick="genCRM()">Regenerate</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOUR PREP PAGE -->
+<div class="page" id="page-tour">
+  <div class="page-header">
+    <div class="page-title">Tour Prep Briefing</div>
+    <div class="page-sub">Walk into every viewing knowing exactly what to say</div>
+  </div>
+  <div class="form-card">
+    <div class="form-grid">
+      <div class="field"><label>Buyer name</label><input type="text" id="t-buyer" placeholder="e.g. James & Sarah Mitchell"/></div>
+      <div class="field"><label>Development name</label><input type="text" id="t-dev" placeholder="e.g. The Ashford Residences"/></div>
+      <div class="field"><label>Budget</label><input type="text" id="t-budget" placeholder="e.g. £900,000 – £1.1m"/></div>
+      <div class="field"><label>Units to show</label><input type="text" id="t-units" placeholder="e.g. Unit 12A (3-bed), Penthouse 8B"/></div>
+      <div class="field full"><label>What you know about the buyer</label><textarea id="t-profile" placeholder="e.g. Couple in their 40s, two kids at school nearby. He works in finance, she's an architect. Want a home office. Previously viewed a development in Chelsea. Price sensitive but flexible if they love it."></textarea></div>
+      <div class="field full"><label>Buyer priorities</label>
+        <div class="chip-row" id="t-priority">
+          <button class="chip active" onclick="pick(this,'t-priority')">Family home</button>
+          <button class="chip" onclick="pick(this,'t-priority')">Investment</button>
+          <button class="chip" onclick="pick(this,'t-priority')">Lifestyle upgrade</button>
+          <button class="chip" onclick="pick(this,'t-priority')">Downsizing</button>
+          <button class="chip" onclick="pick(this,'t-priority')">First time buyer</button>
+          <button class="chip" onclick="pick(this,'t-priority')">Relocation</button>
+        </div>
+      </div>
+      <div class="field full"><label>Development stage</label>
+        <div class="chip-row" id="t-stage">
+          <button class="chip active" onclick="pick(this,'t-stage')">Off-plan</button>
+          <button class="chip" onclick="pick(this,'t-stage')">Under construction</button>
+          <button class="chip" onclick="pick(this,'t-stage')">Show home open</button>
+          <button class="chip" onclick="pick(this,'t-stage')">Ready to move in</button>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="primary-btn" id="t-btn" onclick="genTour()">Generate briefing</button>
+      <button class="ghost-btn" onclick="clearForm(['t-buyer','t-dev','t-budget','t-units','t-profile'],'t-output','t-err')">Clear</button>
+    </div>
+    <div class="err-text" id="t-err"></div>
+    <div class="loading-row" id="t-load"><div class="spinner"></div><span class="loading-text">Preparing your tour briefing...</span></div>
+  </div>
+  <div class="output-card" id="t-output">
+    <div class="output-hdr"><span class="output-hdr-label">Tour prep briefing</span></div>
+    <div class="output-sec"><div class="output-sec-label">Buyer snapshot</div><div class="output-text" id="t-snapshot"></div></div>
+    <div class="output-sec"><div class="output-sec-label">Units to prioritise & why</div><div class="output-text" id="t-units-out"></div></div>
+    <div class="output-sec"><div class="output-sec-label">Key talking points</div><div class="output-text" id="t-talking"></div></div>
+    <div class="output-sec"><div class="output-sec-label">Likely objections & how to handle them</div><div class="output-text" id="t-objections"></div></div>
+    <div class="output-sec"><div class="output-sec-label">Suggested close</div><div class="output-text" id="t-close"></div></div>
+    <div class="output-sec"><div class="output-sec-label">Off-plan vision language</div><div class="output-text" id="t-vision"></div></div>
+    <div class="output-actions">
+      <button class="sm-btn" onclick="copyText(['t-snapshot','t-units-out','t-talking','t-objections','t-close'].map(id=>document.getElementById(id).textContent).join('\n\n'))">Copy briefing</button>
+      <button class="sm-btn" onclick="genTour()">Regenerate</button>
+    </div>
+  </div>
+</div>
+
+
+
+    <!-- Sales Progression -->
+    <div class="page" id="page-progression">
+      <div class="page-header">
+        <div class="page-title">Sales Progression Agent</div>
+        <div class="page-sub">From reservation to exchange — handled</div>
+      </div>
+      <div class="form-card">
+        <div class="form-grid">
+          <div class="field"><label>Buyer name</label><input type="text" id="sp-buyer" placeholder="e.g. James & Sarah Mitchell"/></div>
+          <div class="field"><label>Development & unit</label><input type="text" id="sp-dev" placeholder="e.g. The Ashford Residences, Unit 12A"/></div>
+          <div class="field"><label>Reservation price</label><input type="text" id="sp-price" placeholder="e.g. £985,000"/></div>
+          <div class="field"><label>Days since reservation</label><input type="text" id="sp-days" placeholder="e.g. 14"/></div>
+          <div class="field full"><label>Current status & any issues</label><textarea id="sp-status" placeholder="e.g. Solicitor not yet instructed. Buyer has gone quiet. Exchange deadline is in 14 days."></textarea></div>
+          <div class="field full"><label>Communication type</label>
+            <div class="chip-row" id="sp-type">
+              <button class="chip active" onclick="pick(this,'sp-type')">Buyer update</button>
+              <button class="chip" onclick="pick(this,'sp-type')">Solicitor chase</button>
+              <button class="chip" onclick="pick(this,'sp-type')">Delay notification</button>
+              <button class="chip" onclick="pick(this,'sp-type')">Exchange reminder</button>
+              <button class="chip" onclick="pick(this,'sp-type')">All three</button>
+            </div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="primary-btn" id="sp-btn" onclick="genProgression()">Generate communications</button>
+          <button class="ghost-btn" onclick="clearForm(['sp-buyer','sp-dev','sp-price','sp-days','sp-status'],'sp-output','sp-err')">Clear</button>
+        </div>
+        <div class="err-text" id="sp-err"></div>
+        <div class="loading-row" id="sp-load"><div class="spinner"></div><span class="loading-text">Drafting your progression communications...</span></div>
+      </div>
+      <div class="output-card" id="sp-output">
+        <div class="output-hdr"><span class="output-hdr-label">Sales progression communications</span></div>
+        <div class="output-sec"><div class="output-sec-label">Buyer update email</div><div class="output-text" id="sp-buyer-email"></div></div>
+        <div class="output-sec"><div class="output-sec-label">Solicitor chase email</div><div class="output-text" id="sp-solicitor"></div></div>
+        <div class="output-sec"><div class="output-sec-label">Sales manager note</div><div class="output-text" id="sp-manager"></div></div>
+        <div class="output-actions">
+          <button class="sm-btn" onclick="copyText(['sp-buyer-email','sp-solicitor','sp-manager'].map(id=>document.getElementById(id).textContent).join('\n\n'))">Copy all</button>
+          <button class="sm-btn" onclick="genProgression()">Regenerate</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Social Media -->
+    <div class="page" id="page-social">
+      <div class="page-header">
+        <div class="page-title">Social Media Generator</div>
+        <div class="page-sub">SEO and GEO-optimised content from one brief</div>
+      </div>
+      <div class="form-card">
+        <div class="form-grid">
+          <div class="field"><label>Development name</label><input type="text" id="sm-dev" placeholder="e.g. The Ashford Residences, Nine Elms"/></div>
+          <div class="field"><label>Milestone or topic</label><input type="text" id="sm-topic" placeholder="e.g. Show home now open, topping out ceremony, new phase launch"/></div>
+          <div class="field full"><label>Key highlights to mention</label><input type="text" id="sm-highlights" placeholder="e.g. River views, concierge, 2-bed from £850,000, completion 2026"/></div>
+          <div class="field full"><label>Target audience</label>
+            <div class="chip-row" id="sm-audience">
+              <button class="chip active" onclick="pick(this,'sm-audience')">End-user buyers</button>
+              <button class="chip" onclick="pick(this,'sm-audience')">Investors</button>
+              <button class="chip" onclick="pick(this,'sm-audience')">International buyers</button>
+              <button class="chip" onclick="pick(this,'sm-audience')">General / mixed</button>
+            </div>
+          </div>
+          <div class="field full"><label>Tone</label>
+            <div class="chip-row" id="sm-tone">
+              <button class="chip active" onclick="pick(this,'sm-tone')">Aspirational</button>
+              <button class="chip" onclick="pick(this,'sm-tone')">Editorial</button>
+              <button class="chip" onclick="pick(this,'sm-tone')">Bold & direct</button>
+              <button class="chip" onclick="pick(this,'sm-tone')">Understated luxury</button>
+            </div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="primary-btn" id="sm-btn" onclick="genSocial()">Generate content</button>
+          <button class="ghost-btn" onclick="clearForm(['sm-dev','sm-topic','sm-highlights'],'sm-output','sm-err')">Clear</button>
+        </div>
+        <div class="err-text" id="sm-err"></div>
+        <div class="loading-row" id="sm-load"><div class="spinner"></div><span class="loading-text">Creating your social content...</span></div>
+      </div>
+      <div class="output-card" id="sm-output">
+        <div class="output-hdr"><span class="output-hdr-label">Generated social content</span></div>
+        <div class="output-sec"><div class="output-sec-label">Instagram caption</div><div class="output-text" id="sm-instagram"></div></div>
+        <div class="output-sec"><div class="output-sec-label">LinkedIn post</div><div class="output-text" id="sm-linkedin"></div></div>
+        <div class="output-sec"><div class="output-sec-label">Story script</div><div class="output-text" id="sm-story"></div></div>
+        <div class="output-sec"><div class="output-sec-label">Newsletter paragraph</div><div class="output-text" id="sm-newsletter"></div></div>
+        <div class="output-sec"><div class="output-sec-label">Hashtags</div><div class="output-text" id="sm-hashtags"></div></div>
+        <div class="output-actions">
+          <button class="sm-btn" onclick="copyText(['sm-instagram','sm-linkedin','sm-story','sm-newsletter','sm-hashtags'].map(id=>document.getElementById(id).textContent).join('\n\n'))">Copy all</button>
+          <button class="sm-btn" onclick="genSocial()">Regenerate</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Investor Pack -->
+    <div class="page" id="page-investor">
+      <div class="page-header">
+        <div class="page-title">Investor Pack Builder</div>
+        <div class="page-sub">Professional investor summaries in seconds</div>
+      </div>
+      <div class="form-card">
+        <div class="form-grid">
+          <div class="field"><label>Development name</label><input type="text" id="ip-dev" placeholder="e.g. The Ashford Residences, Nine Elms"/></div>
+          <div class="field"><label>Unit type & price</label><input type="text" id="ip-unit" placeholder="e.g. 1-bed apartment — £750,000"/></div>
+          <div class="field"><label>Estimated rental value</label><input type="text" id="ip-rental" placeholder="e.g. £3,200 per month"/></div>
+          <div class="field"><label>Area average yield</label><input type="text" id="ip-yield" placeholder="e.g. 4.8% gross"/></div>
+          <div class="field full"><label>Area & location highlights</label><input type="text" id="ip-area" placeholder="e.g. Nine Elms SW8 — Northern Line, Battersea Power Station, regeneration zone"/></div>
+          <div class="field full"><label>Key development highlights</label><input type="text" id="ip-highlights" placeholder="e.g. Completion 2026, concierge, private gym, river views, Berkeley Group developer"/></div>
+          <div class="field full"><label>Target investor type</label>
+            <div class="chip-row" id="ip-investor">
+              <button class="chip active" onclick="pick(this,'ip-investor')">UK buy-to-let investor</button>
+              <button class="chip" onclick="pick(this,'ip-investor')">International investor</button>
+              <button class="chip" onclick="pick(this,'ip-investor')">Portfolio investor</button>
+              <button class="chip" onclick="pick(this,'ip-investor')">First time investor</button>
+            </div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="primary-btn" id="ip-btn" onclick="genInvestor()">Generate investor pack</button>
+          <button class="ghost-btn" onclick="clearForm(['ip-dev','ip-unit','ip-rental','ip-yield','ip-area','ip-highlights'],'ip-output','ip-err')">Clear</button>
+        </div>
+        <div class="err-text" id="ip-err"></div>
+        <div class="loading-row" id="ip-load"><div class="spinner"></div><span class="loading-text">Building your investor pack...</span></div>
+      </div>
+      <div class="output-card" id="ip-output">
+        <div class="output-hdr"><span class="output-hdr-label">Investor pack summary</span></div>
+        <div class="output-sec"><div class="output-sec-label">Yield analysis</div><div class="output-text" id="ip-yield-out"></div></div>
+        <div class="output-sec"><div class="output-sec-label">Capital growth case</div><div class="output-text" id="ip-capital"></div></div>
+        <div class="output-sec"><div class="output-sec-label">Area fundamentals</div><div class="output-text" id="ip-area-out"></div></div>
+        <div class="output-sec"><div class="output-sec-label">Development highlights</div><div class="output-text" id="ip-dev-out"></div></div>
+        <div class="output-sec"><div class="output-sec-label">Covering narrative</div><div class="output-text" id="ip-narrative"></div></div>
+        <div class="output-actions">
+          <button class="sm-btn" onclick="copyText(['ip-yield-out','ip-capital','ip-area-out','ip-dev-out','ip-narrative'].map(id=>document.getElementById(id).textContent).join('\n\n'))">Copy all</button>
+          <button class="sm-btn" onclick="genInvestor()">Regenerate</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PASSWORD = "intelliestate2024";
+
+function login() {
+  const val = document.getElementById('pw-input').value;
+  if (val === PASSWORD) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').classList.add('visible');
+  } else {
+    document.getElementById('login-err').classList.add('visible');
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-input').focus();
+  }
+}
+
+function showPage(id, tab) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (tab) tab.classList.add('active');
+}
+
+function pick(btn, groupId) {
+  document.querySelectorAll('#' + groupId + ' .chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function getActive(groupId) {
+  const a = document.querySelector('#' + groupId + ' .chip.active');
+  return a ? a.textContent : '';
+}
+
+function clearForm(ids, outputId, errId) {
+  ids.forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  document.getElementById(outputId).classList.remove('visible');
+  document.getElementById(errId).classList.remove('visible');
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).catch(() => {});
+}
+
+function showErr(id, msg) { const e = document.getElementById(id); e.textContent = msg; e.classList.add('visible'); }
+function hideErr(id) { document.getElementById(id).classList.remove('visible'); }
+function setLoading(loadId, btnId, on) {
+  document.getElementById(loadId).classList.toggle('visible', on);
+  document.getElementById(btnId).disabled = on;
+}
+
+async function callAPI(prompt) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  const data = await res.json();
+  const text = data.content?.map(b => b.text || '').join('') || '';
+  return JSON.parse(text.replace(/```json|```/g, '').trim());
+}
+
+async function genCopy() {
+  const dev = document.getElementById('c-dev').value.trim();
+  const unit = document.getElementById('c-unit').value.trim();
+  if (!dev || !unit) { showErr('c-err', 'Please enter development name and unit type.'); return; }
+  hideErr('c-err');
+  document.getElementById('c-output').classList.remove('visible');
+  setLoading('c-load', 'c-btn', true);
+  const prompt = `You are an expert luxury real estate copywriter for luxury new developments. Return ONLY a JSON object with keys: headline, description, bullets, social.
+- headline: max 12 words
+- description: 3-4 polished evocative sentences
+- bullets: exactly 5 bullet points each starting with -
+- social: max 40 words, no hashtags
+
+Development: ${dev}
+Unit: ${unit}
+${document.getElementById('c-price').value ? 'Price: ' + document.getElementById('c-price').value : ''}
+${document.getElementById('c-size').value ? 'Size: ' + document.getElementById('c-size').value : ''}
+${document.getElementById('c-features').value ? 'Features: ' + document.getElementById('c-features').value : ''}
+${document.getElementById('c-location').value ? 'Location: ' + document.getElementById('c-location').value : ''}
+Buyer: ${getActive('c-buyer')}
+Tone: ${getActive('c-tone')}
+Return ONLY valid JSON, no markdown, no backticks.`;
+  try {
+    const p = await callAPI(prompt);
+    document.getElementById('c-headline').textContent = p.headline || '';
+    document.getElementById('c-desc').textContent = p.description || '';
+    document.getElementById('c-bullets').textContent = p.bullets || '';
+    document.getElementById('c-social').textContent = p.social || '';
+    document.getElementById('c-output').classList.add('visible');
+  } catch(e) { showErr('c-err', 'Something went wrong. Please try again.'); }
+  finally { setLoading('c-load', 'c-btn', false); }
+}
+
+async function genFollowup() {
+  const buyer = document.getElementById('f-buyer').value.trim();
+  const dev = document.getElementById('f-dev').value.trim();
+  if (!buyer || !dev) { showErr('f-err', 'Please enter buyer name and development name.'); return; }
+  hideErr('f-err');
+  document.getElementById('f-output').classList.remove('visible');
+  setLoading('f-load', 'f-btn', true);
+  const prompt = `You are a luxury real estate sales coach helping agents write personalised follow-up emails for new development buyers. Return ONLY a JSON object with keys: subject, body.
+- subject: warm, specific, references something personal from the visit (not generic)
+- body: ready-to-send email, 3-5 paragraphs, genuinely personal, addresses objections gently, ends with a soft clear next step. Sign off from the agent.
+
+Buyer: ${buyer}
+${document.getElementById('f-agent').value ? 'Agent: ' + document.getElementById('f-agent').value : ''}
+Development: ${dev}
+${document.getElementById('f-units').value ? 'Units viewed: ' + document.getElementById('f-units').value : ''}
+${document.getElementById('f-notes').value ? 'Visit notes: ' + document.getElementById('f-notes').value : ''}
+${document.getElementById('f-obj').value ? 'Objections: ' + document.getElementById('f-obj').value : ''}
+Timing: ${getActive('f-timing')} after visit
+Tone: ${getActive('f-tone')}
+Return ONLY valid JSON, no markdown, no backticks.`;
+  try {
+    const p = await callAPI(prompt);
+    document.getElementById('f-to').textContent = buyer;
+    document.getElementById('f-subject').textContent = p.subject || '';
+    document.getElementById('f-body').textContent = p.body || '';
+    document.getElementById('f-output').classList.add('visible');
+  } catch(e) { showErr('f-err', 'Something went wrong. Please try again.'); }
+  finally { setLoading('f-load', 'f-btn', false); }
+}
+async function genMarket() {
+  const dev = document.getElementById('m-dev').value.trim();
+  const price = document.getElementById('m-price').value.trim();
+  if (!dev || !price) { showErr('m-err', 'Please enter development name and asking price.'); return; }
+  hideErr('m-err');
+  document.getElementById('m-output').classList.remove('visible');
+  setLoading('m-load', 'm-btn', true);
+  const prompt = `You are an expert luxury property market analyst helping London new development sales agents justify pricing to hesitant buyers. Return ONLY a JSON object with keys: summary, context, evidence, investment, closing.
+- summary: 1-2 sentence headline that directly addresses the buyer's concern
+- context: 2-3 sentences on current market conditions in this area
+- evidence: 2-3 sentences using the comparable sales data provided to justify the price
+- investment: 2-3 sentences making the investment case
+- closing: 1-2 sentence confident closing statement that reinforces the decision to buy
+
+Development: ${dev}
+${document.getElementById('m-type').value ? 'Property type: ' + document.getElementById('m-type').value : ''}
+Asking price: ${price}
+${document.getElementById('m-location').value ? 'Location: ' + document.getElementById('m-location').value : ''}
+${document.getElementById('m-comps').value ? 'Comparable sales: ' + document.getElementById('m-comps').value : ''}
+${document.getElementById('m-highlights').value ? 'Area highlights: ' + document.getElementById('m-highlights').value : ''}
+Buyer concern: ${getActive('m-concern')}
+Return ONLY valid JSON, no markdown, no backticks.`;
+  try {
+    const p = await callAPI(prompt);
+    document.getElementById('m-summary').textContent = p.summary || '';
+    document.getElementById('m-context').textContent = p.context || '';
+    document.getElementById('m-evidence').textContent = p.evidence || '';
+    document.getElementById('m-investment').textContent = p.investment || '';
+    document.getElementById('m-closing').textContent = p.closing || '';
+    document.getElementById('m-output').classList.add('visible');
+  } catch(e) { showErr('m-err', 'Something went wrong. Please try again.'); }
+  finally { setLoading('m-load', 'm-btn', false); }
+}
+
+async function genCRM() {
+  const buyer = document.getElementById('n-buyer').value.trim();
+  const notes = document.getElementById('n-notes').value.trim();
+  if (!buyer || !notes) { showErr('n-err', 'Please enter buyer name and your notes.'); return; }
+  hideErr('n-err');
+  document.getElementById('n-output').classList.remove('visible');
+  setLoading('n-load', 'n-btn', true);
+  const prompt = `You are a luxury real estate sales assistant helping London new development agents structure their notes into clean CRM entries. Return ONLY a JSON object with keys: profile, temperature, interests, objections, next_action.
+- profile: 2-3 sentences summarising who the buyer is (demographics, lifestyle, professional background if mentioned)
+- temperature: One of: Hot / Warm / Cool / Cold — with a 1 sentence explanation of why
+- interests: Bullet points (each starting with -) of what they liked, preferred units, must-haves
+- objections: Bullet points (each starting with -) of concerns, hesitations, competing properties
+- next_action: Single clear next step with suggested timing
+
+Buyer: ${buyer}
+${document.getElementById('n-dev').value ? 'Development: ' + document.getElementById('n-dev').value : ''}
+Interaction type: ${getActive('n-type')}
+Raw notes: ${notes}
+Return ONLY valid JSON, no markdown, no backticks.`;
+  try {
+    const p = await callAPI(prompt);
+    document.getElementById('n-profile').textContent = p.profile || '';
+    document.getElementById('n-temp').textContent = p.temperature || '';
+    document.getElementById('n-interests').textContent = p.interests || '';
+    document.getElementById('n-objections').textContent = p.objections || '';
+    document.getElementById('n-next').textContent = p.next_action || '';
+    document.getElementById('n-output').classList.add('visible');
+  } catch(e) { showErr('n-err', 'Something went wrong. Please try again.'); }
+  finally { setLoading('n-load', 'n-btn', false); }
+}
+
+async function genTour() {
+  const buyer = document.getElementById('t-buyer').value.trim();
+  const dev = document.getElementById('t-dev').value.trim();
+  if (!buyer || !dev) { showErr('t-err', 'Please enter buyer name and development name.'); return; }
+  hideErr('t-err');
+  document.getElementById('t-output').classList.remove('visible');
+  setLoading('t-load', 't-btn', true);
+  const prompt = `You are an expert luxury new development sales coach in London helping agents prepare for site visits with discerning buyers. Return ONLY a JSON object with keys: snapshot, units, talking_points, objections, close, vision.
+- snapshot: 2-3 sentences summarising who this buyer is and what emotional outcome will make them say yes
+- units: Which units to prioritise showing first and why — specific and strategic based on their profile and budget
+- talking_points: 5-6 bullet points (each starting with -) of highly personalised talking points based on buyer lifestyle, priorities and development stage. For off-plan developments focus on selling the vision and lifestyle rather than the physical property
+- objections: 4-5 bullet points (each starting with -) of the most likely objections this specific buyer will raise with a confident empathetic response for each
+- close: A powerful suggested closing question or statement to use at the end of the tour to move them toward reservation
+- vision: For off-plan or under construction developments — 2-3 sentences of evocative language the agent can use to paint a vivid picture of the completed development and lifestyle for a buyer who cannot yet see it in person
+
+Buyer: ${buyer}
+Development: ${dev}
+${document.getElementById('t-budget').value ? 'Budget: ' + document.getElementById('t-budget').value : ''}
+${document.getElementById('t-units').value ? 'Units to show: ' + document.getElementById('t-units').value : ''}
+${document.getElementById('t-profile').value ? 'Buyer profile: ' + document.getElementById('t-profile').value : ''}
+Priority: ${getActive('t-priority')}
+Development stage: ${getActive('t-stage')}
+Return ONLY valid JSON, no markdown, no backticks.`;
+  try {
+    const p = await callAPI(prompt);
+    document.getElementById('t-snapshot').textContent = p.snapshot || '';
+    document.getElementById('t-units-out').textContent = p.units || '';
+    document.getElementById('t-talking').textContent = p.talking_points || '';
+    document.getElementById('t-objections').textContent = p.objections || '';
+    document.getElementById('t-close').textContent = p.close || '';
+    document.getElementById('t-vision').textContent = p.vision || '(Not applicable for ready to move in developments)';
+    document.getElementById('t-output').classList.add('visible');
+  } catch(e) { showErr('t-err', 'Something went wrong. Please try again.'); }
+  finally { setLoading('t-load', 't-btn', false); }
+}
+
+
+function loadDemo() {
+  showPage('tour', document.querySelectorAll('.nav-tab')[5]);
+  setTimeout(function(){
+    document.getElementById('t-buyer').value = 'Prospective buyer (first time buyer, professional)';
+    document.getElementById('t-dev').value = 'Berkeley Group development, Wandsworth, London';
+    document.getElementById('t-budget').value = '£800,000 - £1,200,000';
+    document.getElementById('t-units').value = '1-bed, 2-bed and 3-bed apartments';
+    document.getElementById('t-profile').value = 'First time buyer, professional, interested in London lifestyle, considering as primary residence. Development opens next year - off-plan purchase.';
+    var stageChips = document.querySelectorAll('#t-stage .chip');
+    stageChips.forEach(function(c){ c.classList.remove('active'); });
+    if(stageChips[0]) stageChips[0].classList.add('active');
+    var priorityChips = document.querySelectorAll('#t-priority .chip');
+    priorityChips.forEach(function(c){ c.classList.remove('active'); });
+    priorityChips.forEach(function(c){ if(c.textContent.trim()==='First time buyer') c.classList.add('active'); });
+  }, 100);
+}
+
+async function genProgression() {
+  const buyer = document.getElementById('sp-buyer').value.trim();
+  const dev = document.getElementById('sp-dev').value.trim();
+  if (!buyer || !dev) { showErr('sp-err', 'Please enter buyer name and development.'); return; }
+  hideErr('sp-err'); document.getElementById('sp-output').classList.remove('visible');
+  setLoading('sp-load', 'sp-btn', true);
+  const prompt = `You are a luxury new development sales progression specialist in London. Return ONLY a JSON object with keys: buyer_email, solicitor_email, manager_note.
+- buyer_email: Professional warm email updating the buyer on their reservation progress, referencing specific details, with a clear next step
+- solicitor_email: Formal but firm chase email to the solicitor requesting an update, professional and time-aware
+- manager_note: Brief structured note for the sales manager: buyer name, unit, days since reservation, current issue, next action and date
+
+Buyer: ${buyer}
+Development & unit: ${dev}
+${document.getElementById('sp-price').value ? 'Price: ' + document.getElementById('sp-price').value : ''}
+${document.getElementById('sp-days').value ? 'Days since reservation: ' + document.getElementById('sp-days').value : ''}
+${document.getElementById('sp-status').value ? 'Status & issues: ' + document.getElementById('sp-status').value : ''}
+Communication focus: ${getActive('sp-type')}
+Return ONLY valid JSON, no markdown, no backticks.`;
+  try {
+    const p = await callAPI(prompt);
+    document.getElementById('sp-buyer-email').textContent = p.buyer_email || '';
+    document.getElementById('sp-solicitor').textContent = p.solicitor_email || '';
+    document.getElementById('sp-manager').textContent = p.manager_note || '';
+    document.getElementById('sp-output').classList.add('visible');
+  } catch(e) { showErr('sp-err', 'Something went wrong. Please try again.'); }
+  finally { setLoading('sp-load', 'sp-btn', false); }
+}
+
+async function genSocial() {
+  const dev = document.getElementById('sm-dev').value.trim();
+  const topic = document.getElementById('sm-topic').value.trim();
+  if (!dev || !topic) { showErr('sm-err', 'Please enter development name and topic.'); return; }
+  hideErr('sm-err'); document.getElementById('sm-output').classList.remove('visible');
+  setLoading('sm-load', 'sm-btn', true);
+  const prompt = `You are an expert luxury property social media strategist and SEO/GEO copywriter. Create social content that is optimised for both traditional search engines and AI-powered search tools like ChatGPT, Perplexity and Google SGE. Return ONLY a JSON object with keys: instagram, linkedin, story, newsletter, hashtags.
+- instagram: Compelling caption under 150 words, aspirational, ends with a soft CTA
+- linkedin: Professional post 100-200 words, insight-led, positions the development as a smart choice
+- story: Short punchy script for Instagram/Facebook story — 3-5 lines maximum
+- newsletter: One polished paragraph suitable for a buyer newsletter or email campaign
+- hashtags: 8-10 relevant hashtags including location, property type and luxury keywords
+
+Development: ${dev}
+Topic/milestone: ${topic}
+${document.getElementById('sm-highlights').value ? 'Highlights: ' + document.getElementById('sm-highlights').value : ''}
+Target audience: ${getActive('sm-audience')}
+Tone: ${getActive('sm-tone')}
+Return ONLY valid JSON, no markdown, no backticks.`;
+  try {
+    const p = await callAPI(prompt);
+    document.getElementById('sm-instagram').textContent = p.instagram || '';
+    document.getElementById('sm-linkedin').textContent = p.linkedin || '';
+    document.getElementById('sm-story').textContent = p.story || '';
+    document.getElementById('sm-newsletter').textContent = p.newsletter || '';
+    document.getElementById('sm-hashtags').textContent = p.hashtags || '';
+    document.getElementById('sm-output').classList.add('visible');
+  } catch(e) { showErr('sm-err', 'Something went wrong. Please try again.'); }
+  finally { setLoading('sm-load', 'sm-btn', false); }
+}
+
+async function genInvestor() {
+  const dev = document.getElementById('ip-dev').value.trim();
+  const unit = document.getElementById('ip-unit').value.trim();
+  if (!dev || !unit) { showErr('ip-err', 'Please enter development name and unit details.'); return; }
+  hideErr('ip-err'); document.getElementById('ip-output').classList.remove('visible');
+  setLoading('ip-load', 'ip-btn', true);
+  const prompt = `You are an expert luxury London property investment analyst. Create a professional investor pack summary. Return ONLY a JSON object with keys: yield_analysis, capital_growth, area_fundamentals, development_highlights, narrative.
+- yield_analysis: 2-3 sentences covering gross yield calculation, net yield estimate and comparison to area average
+- capital_growth: 2-3 sentences making the capital growth case with reference to area trends, infrastructure and regeneration
+- area_fundamentals: 2-3 sentences on demand drivers, transport links, employment hubs and lifestyle credentials
+- development_highlights: 2-3 sentences on the development itself — developer reputation, specification, amenities and completion
+- narrative: A polished 3-4 sentence covering summary that brings it all together — the kind of opening paragraph an investor would read first
+
+Development: ${dev}
+Unit: ${unit}
+${document.getElementById('ip-rental').value ? 'Estimated rental value: ' + document.getElementById('ip-rental').value : ''}
+${document.getElementById('ip-yield').value ? 'Area average yield: ' + document.getElementById('ip-yield').value : ''}
+${document.getElementById('ip-area').value ? 'Area highlights: ' + document.getElementById('ip-area').value : ''}
+${document.getElementById('ip-highlights').value ? 'Development highlights: ' + document.getElementById('ip-highlights').value : ''}
+Investor type: ${getActive('ip-investor')}
+Return ONLY valid JSON, no markdown, no backticks.`;
+  try {
+    const p = await callAPI(prompt);
+    document.getElementById('ip-yield-out').textContent = p.yield_analysis || '';
+    document.getElementById('ip-capital').textContent = p.capital_growth || '';
+    document.getElementById('ip-area-out').textContent = p.area_fundamentals || '';
+    document.getElementById('ip-dev-out').textContent = p.development_highlights || '';
+    document.getElementById('ip-narrative').textContent = p.narrative || '';
+    document.getElementById('ip-output').classList.add('visible');
+  } catch(e) { showErr('ip-err', 'Something went wrong. Please try again.'); }
+  finally { setLoading('ip-load', 'ip-btn', false); }
+}
+</script>
+</body>
+</html>
