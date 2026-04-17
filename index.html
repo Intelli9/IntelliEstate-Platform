@@ -665,8 +665,12 @@ async function callAPI(prompt) {
     })
   });
   const data = await res.json();
-  const text = data.content?.map(b => b.text || '').join('') || '';
-  return JSON.parse(text.replace(/```json|```/g, '').trim());
+  console.log('API response:', JSON.stringify(data).substring(0, 300));
+  if (data.error) throw new Error(data.error);
+  const text = (data.content || []).map(b => b.text || '').join('');
+  const clean = text.replace(/```json/g, '').replace(/```/g, '').trim();
+  console.log('Parsed text:', clean.substring(0, 200));
+  return JSON.parse(clean);
 }
 
 async function genCopy() {
