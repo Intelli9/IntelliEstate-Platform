@@ -781,7 +781,7 @@
           <div class="field"><label>Annual service charge (£)</label><input type="number" id="calc-service" placeholder="e.g. 3000" oninput="runCalc()"/></div>
           <div class="field"><label>Annual ground rent (£)</label><input type="number" id="calc-ground" placeholder="e.g. 500" oninput="runCalc()"/></div>
           <div class="field"><label>Management fee (%)</label><input type="number" id="calc-mgmt" placeholder="e.g. 10" oninput="runCalc()"/></div>
-          <div class="field"><label>Deposit (%)</label><input type="number" id="calc-deposit" placeholder="e.g. 25" oninput="runCalc()"/></div>
+          <div class="field"><label>Deposit amount (£)</label><input type="number" id="calc-deposit" placeholder="e.g. 275000" oninput="runCalc()"/></div>
           <div class="field"><label>Mortgage interest rate (%)</label><input type="number" id="calc-rate" placeholder="e.g. 4.5" oninput="runCalc()"/></div>
           <div class="field"><label>Mortgage term (years)</label><input type="number" id="calc-term" placeholder="e.g. 25" oninput="runCalc()"/></div>
           <div class="field full"><label>Property type</label>
@@ -907,18 +907,16 @@ function setLoading(loadId, btnId, on) {
 }
 
 async function callAPI(prompt) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  var res = await fetch('/api/claude', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      messages: [{ role: 'user', content: prompt }]
-    })
+    body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] })
   });
-  const data = await res.json();
-  const text = data.content?.map(b => b.text || '').join('') || '';
-  return JSON.parse(text.replace(/```json|```/g, '').trim());
+  var data = await res.json();
+  if (data.error) throw new Error(data.error.message || 'API error');
+  var text = (data.content || []).map(function(b){ return b.text || ''; }).join('');
+  var clean = text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
+  return JSON.parse(clean);
 }
 
 async function genCopy() {
@@ -1258,7 +1256,8 @@ function runCalc() {
   var service = parseFloat(document.getElementById('calc-service').value) || 0;
   var ground = parseFloat(document.getElementById('calc-ground').value) || 0;
   var mgmt = parseFloat(document.getElementById('calc-mgmt').value) || 0;
-  var depositPct = parseFloat(document.getElementById('calc-deposit').value) || 25;
+  var depositAmt = parseFloat(document.getElementById('calc-deposit').value) || 0;
+  var depositPct = purchase > 0 && depositAmt > 0 ? (depositAmt / purchase * 100) : 25;
   var rate = parseFloat(document.getElementById('calc-rate').value) || 0;
   var term = parseFloat(document.getElementById('calc-term').value) || 25;
   var isBTL = getActive('calc-type') === 'Additional property (BTL)';
@@ -1269,7 +1268,8 @@ function runCalc() {
   var grossYield = rent > 0 ? (annualRent / purchase * 100) : 0;
   var netAnnual = annualRent - annualCosts;
   var netYield = rent > 0 ? (netAnnual / purchase * 100) : 0;
-  var loan = purchase * (1 - depositPct / 100);
+  var dep = depositAmt > 0 ? depositAmt : purchase * (depositPct/100);
+  var loan = purchase - dep;
   var mr = rate / 100 / 12;
   var np = term * 12;
   var mortgage = (rate > 0 && loan > 0) ? loan * (mr * Math.pow(1+mr,np)) / (Math.pow(1+mr,np)-1) : 0;
@@ -1280,7 +1280,6 @@ function runCalc() {
   else if (purchase <= 925000) stamp = 250000*surcharge + (purchase-250000)*(0.05+surcharge);
   else if (purchase <= 1500000) stamp = 250000*surcharge + 675000*(0.05+surcharge) + (purchase-925000)*(0.10+surcharge);
   else stamp = 250000*surcharge + 675000*(0.05+surcharge) + 575000*(0.10+surcharge) + (purchase-1500000)*(0.12+surcharge);
-  var dep = purchase * (depositPct/100);
   var fmt = function(n){ return '£' + Math.round(n).toLocaleString(); };
   document.getElementById('calc-gross').textContent = rent > 0 ? grossYield.toFixed(2)+'%' : '—';
   document.getElementById('calc-net').textContent = rent > 0 ? netYield.toFixed(2)+'%' : '—';
