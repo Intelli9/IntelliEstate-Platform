@@ -282,7 +282,6 @@
               <button class="chip" onclick="pick(this,'c-buyer')">International buyer</button>
               <button class="chip" onclick="pick(this,'c-buyer')">Downsizer</button>
             </div>
-          </div>
           <div class="field full"><label>Tone</label>
             <div class="chip-row" id="c-tone">
               <button class="chip active" onclick="pick(this,'c-tone')">Aspirational</button>
@@ -342,7 +341,6 @@
               <button class="chip" onclick="pick(this,'f-timing')">3 days later</button>
               <button class="chip" onclick="pick(this,'f-timing')">1 week later</button>
             </div>
-          </div>
           <div class="field full"><label>Tone</label>
             <div class="chip-row" id="f-tone">
               <button class="chip active" onclick="pick(this,'f-tone')">Warm & personal</button>
@@ -574,7 +572,6 @@
               <button class="chip" onclick="pick(this,'sm-audience')">International buyers</button>
               <button class="chip" onclick="pick(this,'sm-audience')">General / mixed</button>
             </div>
-          </div>
           <div class="field full"><label>Tone</label>
             <div class="chip-row" id="sm-tone">
               <button class="chip active" onclick="pick(this,'sm-tone')">Aspirational</button>
@@ -682,7 +679,6 @@
           <div class="field full"><label>What you know about the vendor & property</label>
             <textarea id="v-prep-notes" placeholder="e.g. Detached 4-bed in Wandsworth. Vendor looking to downsize after children left home. Has lived there 20 years. Spoken to Foxtons already. Emotional attachment to the property." style="min-height:70px;"></textarea>
           </div>
-          </div>
           <div class="field full"><label>Tone</label>
             <div class="chip-row" id="v-tone">
               <button class="chip active" onclick="pick(this,'v-tone')">Warm & confident</button>
@@ -741,7 +737,6 @@
               <button class="chip" onclick="pick(this,'lt-recipient')">Tenant</button>
               <button class="chip" onclick="pick(this,'lt-recipient')">Both</button>
             </div>
-          </div>
           <div class="field full"><label>Tone</label>
             <div class="chip-row" id="lt-tone">
               <button class="chip active" onclick="pick(this,'lt-tone')">Professional & warm</button>
@@ -906,8 +901,14 @@ function login() {
 function showPage(id, tab) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('page-' + id).classList.add('active');
+  var page = document.getElementById('page-' + id);
+  if (page) {
+    page.classList.add('active');
+  } else {
+    console.error('Page not found: page-' + id);
+  }
   if (tab) tab.classList.add('active');
+  window.scrollTo(0, 0);
 }
 
 function pick(btn, groupId) {
@@ -1465,11 +1466,31 @@ function toggleValMode() {
   document.getElementById('v-btn').textContent = isPrep ? 'Generate prep brief' : 'Generate follow-up';
 }
 
-// Updated genValuation to handle both modes
-var _origGenValuation = genValuation;
+// Valuation tool handles both modes
 async function genValuation() {
   var mode = getActive('v-mode');
-  if (mode !== 'Pre-valuation prep') { return _origGenValuation(); }
+  if (mode !== 'Pre-valuation prep') {
+    // Post-valuation follow-up mode (original)
+    var vendor = document.getElementById('v-vendor').value.trim();
+    var address = document.getElementById('v-address').value.trim();
+    if (!vendor || !address) { showErr('v-err', 'Please enter vendor name and property address.'); return; }
+    hideErr('v-err');
+    document.getElementById('v-output').classList.remove('visible');
+    setLoading('v-load', 'v-btn', true);
+    var situation = getActive('v-situation');
+    var tone = getActive('v-tone');
+    var prompt = 'You are an expert UK estate agency sales coach helping agents win instructions after valuations. Return ONLY a JSON object with keys: subject, body, verbal, next_step. subject: A compelling subject line that feels personal not generic. body: A polished, persuasive follow-up email that feels genuinely personal. Address the vendor specific situation. 3-4 paragraphs, ready to send. verbal: 3-4 bullet points (each starting with -) of the most compelling things the agent should reinforce in a follow-up phone call. next_step: A single specific recommended next action with suggested timing. Vendor: ' + vendor + '. Property: ' + address + '. Our valuation: ' + (document.getElementById("v-price").value||"") + '. Days since valuation: ' + (document.getElementById("v-days").value||"") + '. Our key strengths: ' + (document.getElementById("v-strengths").value||"") + '. Competitor context: ' + (document.getElementById("v-competition").value||"") + '. Situation: ' + situation + '. Tone: ' + tone + '. Return ONLY valid JSON, no markdown, no backticks.';
+    try {
+      var p = await callAPI(prompt);
+      document.getElementById('v-subject').textContent = p.subject || '';
+      document.getElementById('v-body').textContent = p.body || '';
+      document.getElementById('v-verbal').textContent = p.verbal || '';
+      document.getElementById('v-next').textContent = p.next_step || '';
+      document.getElementById('v-output').classList.add('visible');
+    } catch(e) { showErr('v-err', 'Something went wrong. Please try again.'); }
+    finally { setLoading('v-load', 'v-btn', false); }
+    return;
+  }
 
   // Pre-valuation prep mode
   var vendor = document.getElementById('v-vendor').value.trim();
