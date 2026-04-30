@@ -1208,38 +1208,6 @@ async function genInvestor() {
   finally { setLoading('ip-load', 'ip-btn', false); }
 }
 
-async function genValuation() {
-  const vendor = document.getElementById('v-vendor').value.trim();
-  const address = document.getElementById('v-address').value.trim();
-  if (!vendor || !address) { showErr('v-err', 'Please enter vendor name and property address.'); return; }
-  hideErr('v-err');
-  document.getElementById('v-output').classList.remove('visible');
-  setLoading('v-load', 'v-btn', true);
-  const prompt = `You are an expert UK estate agency sales coach helping agents win instructions after valuations. Return ONLY a JSON object with keys: subject, body, verbal, next_step.
-- subject: A compelling subject line that feels personal not generic — reference the property or vendor if possible
-- body: A polished, persuasive follow-up email that feels genuinely personal. Address the vendor's specific situation. If competing against a higher quote, address pricing honestly and confidently without being negative about competitors. If nurturing a not-ready vendor, be warm and patient. If re-engaging a gone-quiet vendor, be light and low pressure. 3-4 paragraphs, ready to send.
-- verbal: 3-4 bullet points (each starting with -) of the most compelling things the agent should reinforce in a follow-up phone call — things that are harder to say in an email but powerful when spoken
-- next_step: A single specific recommended next action with suggested timing
-
-Vendor: ${vendor}
-Property: ${address}
-${document.getElementById('v-price').value ? 'Our valuation: ' + document.getElementById('v-price').value : ''}
-${document.getElementById('v-days').value ? 'Days since valuation: ' + document.getElementById('v-days').value : ''}
-${document.getElementById('v-strengths').value ? 'Our key strengths: ' + document.getElementById('v-strengths').value : ''}
-${document.getElementById('v-competition').value ? 'Competitor context: ' + document.getElementById('v-competition').value : ''}
-Situation: ${getActive('v-situation')}
-Tone: ${getActive('v-tone')}
-Return ONLY valid JSON, no markdown, no backticks.`;
-  try {
-    const p = await callAPI(prompt);
-    document.getElementById('v-subject').textContent = p.subject || '';
-    document.getElementById('v-body').textContent = p.body || '';
-    document.getElementById('v-verbal').textContent = p.verbal || '';
-    document.getElementById('v-next').textContent = p.next_step || '';
-    document.getElementById('v-output').classList.add('visible');
-  } catch(e) { showErr('v-err', 'Something went wrong. Please try again.'); }
-  finally { setLoading('v-load', 'v-btn', false); }
-}
 
 async function genLandlord() {
   const address = document.getElementById('lt-address').value.trim();
