@@ -153,6 +153,8 @@
       <button class="nav-tab" onclick="showPage('landlord',this)">Landlord &amp; tenant</button>
       <button class="nav-tab" onclick="showPage('calculator',this)">Calculator</button>
       <button class="nav-tab" onclick="showPage('offer',this)">Offer &amp; negotiation</button>
+      <button class="nav-tab" onclick="showPage('tenantfollowup',this)">Tenant follow-up</button>
+      <button class="nav-tab" onclick="showPage('lettingsprog',this)">Lettings progression</button>
     </div>
   </nav>
   <div class="content">
@@ -257,6 +259,22 @@
           </div>
           <div class="tool-name">Offer &amp; Negotiation Assistant</div>
           <div class="tool-desc">Handle every offer professionally — vendor communications, negotiation strategy and buyer responses.</div>
+          <div class="tool-link">Open tool →</div>
+        </div>
+        <div class="tool-card" onclick="showPage('tenantfollowup',document.querySelectorAll('.nav-tab')[13])">
+          <div class="tool-icon ic-teal">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="3" stroke="#0F6E56" stroke-width="1.2" fill="none"/><path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="#0F6E56" stroke-width="1.2" fill="none"/></svg>
+          </div>
+          <div class="tool-name">Tenant Applicant Follow-Up</div>
+          <div class="tool-desc">Personalised follow-ups after every lettings viewing — referencing what the applicant said, their timeline and next steps.</div>
+          <div class="tool-link">Open tool →</div>
+        </div>
+        <div class="tool-card" onclick="showPage('lettingsprog',document.querySelectorAll('.nav-tab')[14])">
+          <div class="tool-icon ic-purple">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12v8H2z" stroke="#534AB7" stroke-width="1.2" fill="none"/><path d="M5 8h6M5 10.5h4" stroke="#534AB7" stroke-width="1.2" stroke-linecap="round" fill="none"/></svg>
+          </div>
+          <div class="tool-name">Lettings Progression Agent</div>
+          <div class="tool-desc">Referencing chases, landlord updates, tenancy agreement progress and move-in confirmations — all handled from a quick status update.</div>
           <div class="tool-link">Open tool →</div>
         </div>
       </div>
@@ -854,6 +872,102 @@
         </div>
       </div>
     </div>
+
+    <!-- Tenant Applicant Follow-Up -->
+    <div class="page" id="page-tenantfollowup">
+      <div class="page-header">
+        <div class="page-title">Tenant Applicant Follow-Up</div>
+        <div class="page-sub">Personalised follow-ups that convert viewings into tenancies</div>
+      </div>
+      <div class="form-card">
+        <div class="form-grid">
+          <div class="field"><label>Applicant name</label><input type="text" id="tf-applicant" placeholder="e.g. James and Sophie Mitchell"/></div>
+          <div class="field"><label>Property address</label><input type="text" id="tf-property" placeholder="e.g. Flat 4, 22 Creek Road, SE8"/></div>
+          <div class="field"><label>Monthly rent</label><input type="text" id="tf-rent" placeholder="e.g. £1,800 per month"/></div>
+          <div class="field"><label>Viewing date</label><input type="text" id="tf-date" placeholder="e.g. today, yesterday, Monday"/></div>
+          <div class="field full"><label>What they liked and said during the viewing</label><textarea id="tf-notes" placeholder="e.g. Loved the size of the kitchen and the natural light. Concerned about the commute to Canary Wharf. Looking to move in mid-June. Also viewing one other flat in Deptford tomorrow."></textarea></div>
+          <div class="field full"><label>Follow-up type</label>
+            <div class="chip-row" id="tf-type">
+              <button class="chip active" onclick="pick(this,'tf-type')">Same day — warm & personal</button>
+              <button class="chip" onclick="pick(this,'tf-type')">Next day check-in</button>
+              <button class="chip" onclick="pick(this,'tf-type')">Gone quiet re-engagement</button>
+              <button class="chip" onclick="pick(this,'tf-type')">Offer to hold — urgency nudge</button>
+            </div>
+          </div>
+          <div class="field full"><label>Tone</label>
+            <div class="chip-row" id="tf-tone">
+              <button class="chip active" onclick="pick(this,'tf-tone')">Warm & friendly</button>
+              <button class="chip" onclick="pick(this,'tf-tone')">Professional & direct</button>
+              <button class="chip" onclick="pick(this,'tf-tone')">Gentle & low pressure</button>
+            </div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="primary-btn" id="tf-btn" onclick="genTenantFollowup()">Generate follow-up</button>
+          <button class="ghost-btn" onclick="clearForm(['tf-applicant','tf-property','tf-rent','tf-date','tf-notes'],'tf-output','tf-err')">Clear</button>
+        </div>
+        <div class="err-text" id="tf-err"></div>
+        <div class="loading-row" id="tf-load"><div class="spinner"></div><span class="loading-text">Writing your tenant follow-up...</span></div>
+      </div>
+      <div class="output-card" id="tf-output">
+        <div class="output-hdr"><span class="output-hdr-label">Tenant follow-up</span></div>
+        <div class="output-sec"><div class="output-sec-label">Subject line</div><div class="output-text" id="tf-subject"></div></div>
+        <div class="output-sec"><div class="output-sec-label">Email</div><div class="output-text" id="tf-email"></div></div>
+        <div class="output-sec"><div class="output-sec-label">WhatsApp version</div><div class="output-text" id="tf-whatsapp"></div></div>
+        <div class="output-sec"><div class="output-sec-label">Suggested next step</div><div class="output-text" id="tf-next"></div></div>
+        <div class="output-actions">
+          <button class="sm-btn" onclick="copyText(document.getElementById('tf-email').textContent)">Copy email</button>
+          <button class="sm-btn" onclick="copyText(document.getElementById('tf-whatsapp').textContent)">Copy WhatsApp</button>
+          <button class="sm-btn" onclick="genTenantFollowup()">Regenerate</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lettings Progression Agent -->
+    <div class="page" id="page-lettingsprog">
+      <div class="page-header">
+        <div class="page-title">Lettings Progression Agent</div>
+        <div class="page-sub">From offer accepted to keys handed over — handled</div>
+      </div>
+      <div class="form-card">
+        <div class="form-grid">
+          <div class="field"><label>Applicant name</label><input type="text" id="lp-applicant" placeholder="e.g. James and Sophie Mitchell"/></div>
+          <div class="field"><label>Property address</label><input type="text" id="lp-property" placeholder="e.g. Flat 4, 22 Creek Road, SE8"/></div>
+          <div class="field"><label>Landlord name</label><input type="text" id="lp-landlord" placeholder="e.g. Mr David Harrison"/></div>
+          <div class="field"><label>Monthly rent</label><input type="text" id="lp-rent" placeholder="e.g. £1,800 per month"/></div>
+          <div class="field"><label>Target move-in date</label><input type="text" id="lp-movein" placeholder="e.g. 1st June 2025"/></div>
+          <div class="field full"><label>Current status & any issues</label><textarea id="lp-status" placeholder="e.g. Offer accepted 3 days ago. Referencing not yet started — applicant hasn't responded to referencing company. Landlord asking for update. Move-in in 3 weeks." style="min-height:70px;"></textarea></div>
+          <div class="field full"><label>Communication needed</label>
+            <div class="chip-row" id="lp-type">
+              <button class="chip active" onclick="pick(this,'lp-type')">Applicant referencing chase</button>
+              <button class="chip" onclick="pick(this,'lp-type')">Landlord update</button>
+              <button class="chip" onclick="pick(this,'lp-type')">Tenancy agreement chase</button>
+              <button class="chip" onclick="pick(this,'lp-type')">Move-in confirmation</button>
+              <button class="chip" onclick="pick(this,'lp-type')">Deposit receipt confirmation</button>
+              <button class="chip" onclick="pick(this,'lp-type')">All communications</button>
+            </div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="primary-btn" id="lp-btn" onclick="genLettingsProg()">Generate communications</button>
+          <button class="ghost-btn" onclick="clearForm(['lp-applicant','lp-property','lp-landlord','lp-rent','lp-movein','lp-status'],'lp-output','lp-err')">Clear</button>
+        </div>
+        <div class="err-text" id="lp-err"></div>
+        <div class="loading-row" id="lp-load"><div class="spinner"></div><span class="loading-text">Drafting your lettings progression communications...</span></div>
+      </div>
+      <div class="output-card" id="lp-output">
+        <div class="output-hdr"><span class="output-hdr-label">Lettings progression communications</span></div>
+        <div class="output-sec"><div class="output-sec-label">Applicant communication</div><div class="output-text" id="lp-applicant-msg"></div></div>
+        <div class="output-sec"><div class="output-sec-label">Landlord update</div><div class="output-text" id="lp-landlord-msg"></div></div>
+        <div class="output-sec"><div class="output-sec-label">Negotiator note</div><div class="output-text" id="lp-note"></div></div>
+        <div class="output-actions">
+          <button class="sm-btn" onclick="copyText(['lp-applicant-msg','lp-landlord-msg','lp-note'].map(function(id){return document.getElementById(id).textContent}).join('\n\n'))">Copy all</button>
+          <button class="sm-btn" onclick="copyText(document.getElementById('lp-applicant-msg').textContent)">Copy applicant msg</button>
+          <button class="sm-btn" onclick="copyText(document.getElementById('lp-landlord-msg').textContent)">Copy landlord msg</button>
+          <button class="sm-btn" onclick="genLettingsProg()">Regenerate</button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1332,6 +1446,55 @@ async function genOffer() {
     document.getElementById('of-output').classList.add('visible');
   } catch(e) { showErr('of-err', 'Something went wrong. Please try again.'); }
   finally { setLoading('of-load', 'of-btn', false); }
+}
+
+// ── Tenant Applicant Follow-Up ──
+async function genTenantFollowup() {
+  var applicant = document.getElementById('tf-applicant').value.trim();
+  var property = document.getElementById('tf-property').value.trim();
+  if (!applicant || !property) { showErr('tf-err', 'Please enter applicant name and property address.'); return; }
+  hideErr('tf-err');
+  document.getElementById('tf-output').classList.remove('visible');
+  setLoading('tf-load', 'tf-btn', true);
+  var rent = document.getElementById('tf-rent').value.trim();
+  var date = document.getElementById('tf-date').value.trim();
+  var notes = document.getElementById('tf-notes').value.trim();
+  var type = getActive('tf-type');
+  var tone = getActive('tf-tone');
+  var prompt = 'You are an expert UK lettings negotiator helping agents follow up with rental applicants after viewings. Return ONLY a JSON object with keys: subject, email, whatsapp, next_step. subject: A warm personal subject line referencing the property. email: A complete ready-to-send follow-up email. Reference what the applicant specifically said and liked during the viewing. Address any concerns they raised. For same day follow-ups be warm and enthusiastic. For gone quiet re-engagement be light and low pressure. For urgency nudge mention other interest without being pushy. whatsapp: A short 2-3 sentence WhatsApp version of the same message — casual, friendly, direct. next_step: The single most important action for the agent to take next and when. Applicant: ' + applicant + '. Property: ' + property + '. Rent: ' + rent + '. Viewing: ' + date + '. Notes from viewing: ' + (notes || 'No specific notes provided') + '. Follow-up type: ' + type + '. Tone: ' + tone + '. Return ONLY valid JSON, no markdown, no backticks.';
+  try {
+    var p = await callAPI(prompt);
+    document.getElementById('tf-subject').textContent = p.subject || '';
+    document.getElementById('tf-email').textContent = p.email || '';
+    document.getElementById('tf-whatsapp').textContent = p.whatsapp || '';
+    document.getElementById('tf-next').textContent = p.next_step || '';
+    document.getElementById('tf-output').classList.add('visible');
+  } catch(e) { showErr('tf-err', 'Something went wrong. Please try again.'); }
+  finally { setLoading('tf-load', 'tf-btn', false); }
+}
+
+// ── Lettings Progression Agent ──
+async function genLettingsProg() {
+  var applicant = document.getElementById('lp-applicant').value.trim();
+  var property = document.getElementById('lp-property').value.trim();
+  if (!applicant || !property) { showErr('lp-err', 'Please enter applicant name and property address.'); return; }
+  hideErr('lp-err');
+  document.getElementById('lp-output').classList.remove('visible');
+  setLoading('lp-load', 'lp-btn', true);
+  var landlord = document.getElementById('lp-landlord').value.trim();
+  var rent = document.getElementById('lp-rent').value.trim();
+  var movein = document.getElementById('lp-movein').value.trim();
+  var status = document.getElementById('lp-status').value.trim();
+  var type = getActive('lp-type');
+  var prompt = 'You are an expert UK lettings progression specialist. Return ONLY a JSON object with keys: applicant_msg, landlord_msg, note. applicant_msg: A professional ready-to-send communication to the applicant appropriate to the situation. For referencing chase: firm but friendly, explain why it is urgent and what they need to do. For tenancy agreement chase: clear and time-aware. For move-in confirmation: warm and practical with all key details. For deposit receipt: professional confirmation. applicant_msg should always be complete and ready to send. landlord_msg: A professional update to the landlord keeping them informed, managing expectations and showing the agent is on top of the progression. Warm but businesslike. note: A brief structured note for the negotiator or property manager: applicant name, property, current stage, issue, next action and date. Applicant: ' + applicant + '. Property: ' + property + '. Landlord: ' + landlord + '. Rent: ' + rent + '. Target move-in: ' + movein + '. Current status: ' + (status || 'No specific details provided') + '. Communication needed: ' + type + '. Return ONLY valid JSON, no markdown, no backticks.';
+  try {
+    var p = await callAPI(prompt);
+    document.getElementById('lp-applicant-msg').textContent = p.applicant_msg || '';
+    document.getElementById('lp-landlord-msg').textContent = p.landlord_msg || '';
+    document.getElementById('lp-note').textContent = p.note || '';
+    document.getElementById('lp-output').classList.add('visible');
+  } catch(e) { showErr('lp-err', 'Something went wrong. Please try again.'); }
+  finally { setLoading('lp-load', 'lp-btn', false); }
 }
 </script>
 </body>
